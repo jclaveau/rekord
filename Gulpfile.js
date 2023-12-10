@@ -269,48 +269,51 @@ gulp.task('lint', function() {
 });
 
 gulp.task( 'js', executeBuild( build ) );
-gulp.task( 'js:min', ['js'], executeMinifiedBuild( build ) );
+gulp.task( 'js:min', gulp.series('js'), executeMinifiedBuild( build ) );
 gulp.task( 'js:modular', executeModular( modularized, false ) );
-gulp.task( 'js:modular:min', ['js:modular'], executeModular( modularized, true ) );
+gulp.task( 'js:modular:min', gulp.series('js:modular'), executeModular( modularized, true ) );
 
-gulp.task( 'default', ['js:min']);
+gulp.task( 'default', gulp.series('js:min'));
 
-gulp.task( 'test:webpack:build', ['js'], shell.task([
+gulp.task( 'test:webpack:build', gulp.series('js'), shell.task([
   'npm install',
   'node node_modules/webpack/bin/webpack.js'
 ], {
   cwd: './test/webpack'
 }));
 
-gulp.task( 'test:typescript:build', ['js'], shell.task([
+gulp.task( 'test:typescript:build', gulp.series('js'), shell.task([
   'npm install',
   'node node_modules/typescript/bin/tsc || true'
 ], {
   cwd: './test/typescript'
 }));
 
-gulp.task( 'test:browserify:build', ['js'], shell.task([
+gulp.task( 'test:browserify:build', gulp.series('js'), shell.task([
   'npm install',
   'node node_modules/browserify/bin/cmd.js test.js -o bundle.js'
 ], {
   cwd: './test/browserify'
 }));
 
-gulp.task( 'test:normal', ['js'], executeTest( './test/index.html' ) );
-gulp.task( 'test:nativearray', ['js'], executeTest( './test/index-nativearray.html' ) );
-gulp.task( 'test:requirejs', ['js'], executeTest( './test/requirejs/index.html' ) );
-gulp.task( 'test:webpack', ['test:webpack:build'], executeTest( './test/webpack/index.html' ) );
-gulp.task( 'test:typescript', ['test:typescript:build'], executeTest( './test/typescript/index.html' ) );
-gulp.task( 'test:browserify', ['test:browserify:build'], executeTest( './test/browserify/index.html' ) );
+gulp.task( 'test:normal', gulp.series('js'), executeTest( './test/index.html' ) );
+gulp.task( 'test:nativearray', gulp.series('js'), executeTest( './test/index-nativearray.html' ) );
+gulp.task( 'test:requirejs', gulp.series('js'), executeTest( './test/requirejs/index.html' ) );
+gulp.task( 'test:webpack', gulp.series('test:webpack:build'), executeTest( './test/webpack/index.html' ) );
+gulp.task( 'test:typescript', gulp.series('test:typescript:build'), executeTest( './test/typescript/index.html' ) );
+gulp.task( 'test:browserify', gulp.series('test:browserify:build'), executeTest( './test/browserify/index.html' ) );
 
-gulp.task( 'test', [
+
+
+
+gulp.task( 'test', gulp.series(
   'test:normal',
   'test:nativearray',
   'test:requirejs',
   'test:webpack',
   'test:typescript',
   'test:browserify'
-]);
+));
 
 gulp.task( 'docs', shell.task(['./node_modules/.bin/jsdoc -c jsdoc.json']));
 gulp.task( 'clean', shell.task(['rm -rf build/*.js', 'rm -rf build/*.map']));
